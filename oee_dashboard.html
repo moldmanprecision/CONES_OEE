@@ -655,6 +655,49 @@ function loadJSON(text){
     console.error('Dashboard load error:', e);
   }
 }
+// Load current data from server
+window.loadServerData = function(){
+
+  const btn = document.getElementById('loadServerBtn');
+  const errEl = document.getElementById('dropErr');
+
+  if(btn){
+    btn.textContent = 'Loading...';
+    btn.disabled = true;
+  }
+
+  errEl.textContent = '';
+
+  fetch('/output/oee_data.json')
+    .then(r=>{
+      if(!r.ok) throw new Error('Server returned ' + r.status);
+      return r.json();
+    })
+    .then(data=>{
+
+      RAW = data;
+
+      document.getElementById('dropZone').style.display='none';
+      document.getElementById('app').style.display='block';
+
+      initFilters();
+      applyFilters();
+
+    })
+    .catch(err=>{
+      errEl.textContent='Could not load data: ' + err.message;
+
+      if(btn){
+        btn.textContent='⬇ Load current data';
+        btn.disabled=false;
+      }
+    });
+};
+
+// Auto load when page opens
+window.addEventListener('load', function(){
+   setTimeout(loadServerData, 500);
+});
 
 // ──────────────────────────────────────────────────────────────────────────────
 // FILTERS
@@ -2282,7 +2325,7 @@ function downloadLossTrendExcel(){
   XLSX.writeFile(wb,'loss_trend.xlsx');
 }
 initDropZone();
-Window.onload = function () {
+window.onload = function () {
     console.log("Page loaded → calling loadServerData()");
     loadServerData();
 };
